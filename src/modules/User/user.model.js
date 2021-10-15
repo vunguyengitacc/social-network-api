@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
+import mongoose, { model } from "mongoose";
 
 const UserScheme = new mongoose.Schema(
   {
-    fullname: String,
+    fullname: { type: String },
     username: {
       type: String,
       unique: true,
@@ -25,6 +25,7 @@ const UserScheme = new mongoose.Schema(
 
 UserScheme.index({ fullname: "text" });
 
-const User = mongoose.model("users", UserScheme);
+const User = model("users", UserScheme);
+User.createIndexes();
 
 export default User;

@@ -1,3 +1,4 @@
+import mongosse from "mongoose";
 import ResponseSender from "../../helper/response.helper";
 import User from "./user.model";
 
@@ -14,8 +15,13 @@ const getUserById = async (req, res, next) => {
 
 const searchUser = async (req, res, next) => {
   try {
-    const { term } = req.params;
-    const users = await User.find().lean();
+    const { term } = req.query;
+    let users;
+    if (mongosse.isValidObjectId(term)) {
+      users = await User.findById(term).lean();
+      if (users != null) return ResponseSender.success(res, { users: [users] });
+    }
+    users = await User.aggregate([{ $match: { $text: { $search: term } } }]);
     return ResponseSender.success(res, { users });
   } catch (err) {
     next(err);
