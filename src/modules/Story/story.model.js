@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const StoryScheme = mongoose.Schema(
   {
-    imageUri: String,
+    imageUrl: String,
     content: String,
     userId: { type: Schema.Types.ObjectId, ref: "users" },
   },

@@ -58,7 +58,6 @@ const loginWithFacebook = async (req, res, next) => {
     const access_token = createAccessToken(newUser);
     res.redirect(`${process.env.CLIENT_URL}/auth/oauth/${access_token}`);
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };
