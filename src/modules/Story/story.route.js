@@ -6,7 +6,9 @@ const StoryRouter = express.Router();
 
 StoryRouter.route("/me")
   .get(storyController.getMyStories)
-  .post(imageUploadMiddleware, storyController.create)
+  .post(imageUploadMiddleware, storyController.create);
+StoryRouter.route("/me/:storyId")
+  .put(storyController.updateOne)
   .delete(storyController.deleteOne);
 StoryRouter.route("/:userId").get(storyController.getStoriesByUserId);
 
