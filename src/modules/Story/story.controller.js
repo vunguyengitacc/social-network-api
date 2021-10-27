@@ -22,7 +22,7 @@ const getMyStories = async (req, res, next) => {
 const getStoriesByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const stories = await Story.find({ userId: userId }).lean();
+    let stories = await Story.find({ userId: userId }).lean();
     if (1) stories = stories.map((i) => i.isPrivate === false);
     return ResponseSender.success(res, { stories });
   } catch (err) {
@@ -43,15 +43,15 @@ const deleteOne = async (req, res, next) => {
 const create = async (req, res, next) => {
   try {
     const { content, isPrivate } = req.body;
-    console.log(req.body);
     const data = await cloudinaryUploader(req.file.path, "/picture_stories");
     fs.unlinkSync(req.file.path);
-    const story = await Story.create({
+    const newItem = await Story.create({
       userId: req.user._id,
       content: content,
       imageUrl: data.url,
       isPrivate,
     });
+    const story = await Story.findById(newItem._id).populate("owner").lean();
     return ResponseSender.success(res, { story });
   } catch (err) {
     next(err);

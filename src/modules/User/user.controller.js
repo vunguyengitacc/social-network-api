@@ -28,9 +28,24 @@ const searchUser = async (req, res, next) => {
   }
 };
 
+const updateMe = async (req, res, next) => {
+  try {
+    const { address, job, education, fullname } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { address, job, education, fullname },
+      { new: true }
+    );
+    return ResponseSender.success(res, { user });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const userController = {
   getUserById,
   searchUser,
+  updateMe,
 };
 
 export default userController;
