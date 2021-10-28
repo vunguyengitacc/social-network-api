@@ -1,4 +1,4 @@
-import mongoose, { model } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 
 const UserScheme = new mongoose.Schema(
   {
@@ -12,6 +12,8 @@ const UserScheme = new mongoose.Schema(
     job: String,
     education: [String],
     avatarUri: String,
+    backgroundUrl: String,
+    friendId: [{ type: Schema.Types.ObjectId, ref: "userId" }],
   },
   {
     toJSON: {
@@ -25,6 +27,12 @@ const UserScheme = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+UserScheme.virtual("friends", {
+  ref: "users",
+  localField: "friendId",
+  foreignField: "_id",
+});
 
 UserScheme.index({ fullname: "text" });
 

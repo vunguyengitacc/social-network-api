@@ -13,6 +13,7 @@ const getMyStories = async (req, res, next) => {
       .limit(5)
       .populate("owner")
       .lean();
+
     return ResponseSender.success(res, { stories });
   } catch (err) {
     next(err);
@@ -23,7 +24,9 @@ const getStoriesByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
     let stories = await Story.find({ userId: userId }).lean();
-    if (1) stories = stories.map((i) => i.isPrivate === false);
+    if (1) stories = stories.filter((i) => i.isPrivate === false);
+
+    console.log(stories);
     return ResponseSender.success(res, { stories });
   } catch (err) {
     next(err);
@@ -70,7 +73,13 @@ const updateOne = async (req, res, next) => {
       },
       { new: true }
     );
-    return ResponseSender.success(res, { story });
+    if (story === null)
+      return ResponseSender.error(
+        res,
+        { message: "Unauthorized to update this story" },
+        403
+      );
+    else return ResponseSender.success(res, { story });
   } catch (error) {
     next(error);
   }
