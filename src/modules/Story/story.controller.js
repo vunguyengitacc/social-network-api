@@ -23,10 +23,8 @@ const getMyStories = async (req, res, next) => {
 const getStoriesByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    let stories = await Story.find({ userId: userId }).lean();
+    let stories = await Story.find({ userId: userId }).populate("owner").lean();
     if (1) stories = stories.filter((i) => i.isPrivate === false);
-
-    console.log(stories);
     return ResponseSender.success(res, { stories });
   } catch (err) {
     next(err);
@@ -53,6 +51,8 @@ const create = async (req, res, next) => {
       content: content,
       imageUrl: data.url,
       isPrivate,
+      likeById: [],
+      dislikeById: [],
     });
     const story = await Story.findById(newItem._id).populate("owner").lean();
     return ResponseSender.success(res, { story });
@@ -85,12 +85,62 @@ const updateOne = async (req, res, next) => {
   }
 };
 
+const reactToStory = async (req, res, next) => {
+  try {
+    const { storyId } = req.params;
+    const { like, dislike } = req.body;
+    const userId = req.user._id;
+    let story;
+    if (like && dislike === undefined) {
+      story = await Story.findByIdAndUpdate(
+        storyId,
+        {
+          $pull: { dislikeById: userId },
+          $addToSet: { likeById: userId },
+        },
+        { new: true }
+      );
+    } else {
+      story = await Story.findByIdAndUpdate(
+        storyId,
+        {
+          $pull: { likeById: userId },
+        },
+        { new: true }
+      );
+    }
+    if (dislike && like === undefined) {
+      story = await Story.findByIdAndUpdate(
+        storyId,
+        {
+          $pull: { likeById: userId },
+          $addToSet: { dislikeById: userId },
+        },
+        { new: true }
+      );
+    } else {
+      story = await Story.findByIdAndUpdate(
+        storyId,
+        {
+          $pull: { dislikeById: userId },
+        },
+        { new: true }
+      );
+    }
+    if (story != null) return ResponseSender.success(res, { story });
+    else return ResponseSender.error(res, { message: "Invalid story" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const storyController = {
   getMyStories,
   getStoriesByUserId,
   create,
   updateOne,
   deleteOne,
+  reactToStory,
 };
 
 export default storyController;

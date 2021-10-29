@@ -15,5 +15,7 @@ UserRouter.route("/background/me").put(
 UserRouter.route("/me").put(userController.updateMe);
 UserRouter.route("/search").get(userController.searchUser);
 UserRouter.route("/:userId").get(userController.getUserById);
+UserRouter.route("/me/friend").put(userController.addFriend);
+UserRouter.route("/me/friend/:friendId").delete(userController.removeFriend);
 
 export default UserRouter;

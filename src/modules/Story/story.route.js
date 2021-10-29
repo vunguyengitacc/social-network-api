@@ -11,5 +11,6 @@ StoryRouter.route("/me/:storyId")
   .put(storyController.updateOne)
   .delete(storyController.deleteOne);
 StoryRouter.route("/:userId").get(storyController.getStoriesByUserId);
+StoryRouter.route("/:storyId").put(storyController.reactToStory);
 
 export default StoryRouter;

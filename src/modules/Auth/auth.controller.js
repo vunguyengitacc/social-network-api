@@ -24,6 +24,8 @@ const register = async (req, res, next) => {
       fullname: fullname,
       password: password,
       avatarUri: `https://avatars.dicebear.com/api/initials/${fullname}.svg`,
+      job: [],
+      education: [],
     });
     const access_token = createAccessToken(newUser);
     ResponseSender.success(res, { access_token });

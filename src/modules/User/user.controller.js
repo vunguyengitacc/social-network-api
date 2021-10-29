@@ -32,10 +32,56 @@ const searchUser = async (req, res, next) => {
 
 const updateMe = async (req, res, next) => {
   try {
-    const { address, job, education, fullname } = req.body;
+    const data = { ...req.body };
+    const user = await User.findByIdAndUpdate(req.user._id, data, {
+      new: true,
+    });
+    return ResponseSender.success(res, { user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const addFriend = async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+    const requestId = req.user._id;
+    const to = await User.findByIdAndUpdate(
+      userId,
+      {
+        $addToSet: { friendRequestId: requestId },
+      },
+      { new: true }
+    );
     const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { address, job, education, fullname },
+      requestId,
+      {
+        $addToSet: { friendWaitingId: to._id },
+      },
+      { new: true }
+    );
+    return ResponseSender.success(res, { user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removeFriend = async (req, res, next) => {
+  try {
+    const { friendId } = req.params;
+    const userId = req.user._id;
+    const to = await User.findByIdAndUpdate(
+      friendId,
+      {
+        $pull: { friendId: userId, friendRequestId: userId },
+      },
+      { new: true }
+    );
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $pull: { friendWaitingId: to._id },
+      },
       { new: true }
     );
     return ResponseSender.success(res, { user });
@@ -80,6 +126,8 @@ const userController = {
   updateMe,
   updateAvatar,
   updateBackground,
+  addFriend,
+  removeFriend,
 };
 
 export default userController;
