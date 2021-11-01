@@ -17,5 +17,8 @@ UserRouter.route("/search").get(userController.searchUser);
 UserRouter.route("/:userId").get(userController.getUserById);
 UserRouter.route("/me/friend").put(userController.addFriend);
 UserRouter.route("/me/friend/:friendId").delete(userController.removeFriend);
+UserRouter.route("/me/friend/:friendId/answer")
+  .post(userController.acceptRequest)
+  .delete(userController.denyRequest);
 
 export default UserRouter;

@@ -4,6 +4,7 @@ import storyController from "./story.controller";
 
 const StoryRouter = express.Router();
 
+StoryRouter.route("/").get(storyController.getStories);
 StoryRouter.route("/me")
   .get(storyController.getMyStories)
   .post(imageUploadMiddleware, storyController.create);

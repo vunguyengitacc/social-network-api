@@ -49,6 +49,7 @@ const loginWithFacebook = async (req, res, next) => {
     const checkUser = await User.findOne({ username: `facebookId-${id}` });
     if (checkUser != null) {
       const access_token = createAccessToken(checkUser);
+      console.log(access_token);
       res.redirect(`${process.env.CLIENT_URL}/auth/oauth/${access_token}`);
       return;
     }

@@ -20,6 +20,23 @@ const getMyStories = async (req, res, next) => {
   }
 };
 
+const getStories = async (req, res, next) => {
+  try {
+    let myStories = await Story.find({ userId: req.user._id })
+      .populate("owner")
+      .lean();
+    let myFriendStories = await Story.find({
+      userId: { $in: [...req.user.friendId] },
+    })
+      .populate("owner")
+      .lean();
+    let stories = new Set([...myStories, ...myFriendStories]);
+    return ResponseSender.success(res, { stories: Array.from(stories) });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getStoriesByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -141,6 +158,7 @@ const storyController = {
   updateOne,
   deleteOne,
   reactToStory,
+  getStories,
 };
 
 export default storyController;

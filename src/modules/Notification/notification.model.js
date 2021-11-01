@@ -6,6 +6,7 @@ const NotificationScheme = mongoose.Schema(
     toId: { type: Schema.Types.ObjectId, ref: "users" },
     fromId: { type: Schema.Types.ObjectId, ref: "users" },
     type: Number,
+    active: Boolean,
   },
   {
     toJSON: {

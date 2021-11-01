@@ -3,12 +3,14 @@ import { cloudinaryUploader } from "../../config/cloudiary.config";
 import ResponseSender from "../../helper/response.helper";
 import User from "./user.model";
 import fs from "fs";
+import notificationService from "../Notification/notification.service";
 
 const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId).populate("friends").lean();
     if (!user) return ResponseSender.error(res, { message: "user id invalid" });
+    console.log(user.friendId);
     return ResponseSender.success(res, { user });
   } catch (err) {
     next(err);
@@ -60,6 +62,12 @@ const addFriend = async (req, res, next) => {
       },
       { new: true }
     );
+    await notificationService.createOne({
+      toId: userId,
+      fromId: requestId,
+      message: "send friend request",
+      type: 1,
+    });
     return ResponseSender.success(res, { user });
   } catch (error) {
     next(error);
@@ -80,11 +88,71 @@ const removeFriend = async (req, res, next) => {
     const user = await User.findByIdAndUpdate(
       userId,
       {
-        $pull: { friendWaitingId: to._id },
+        $pull: { friendWaitingId: to._id, friendId: to._id },
       },
       { new: true }
     );
     return ResponseSender.success(res, { user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const denyRequest = async (req, res, next) => {
+  try {
+    const { friendId } = req.params;
+    const myId = req.user._id;
+    const from = await User.findByIdAndUpdate(
+      friendId,
+      {
+        $pull: { friendWaitingId: myId },
+      },
+      { new: true }
+    );
+    const to = await User.findByIdAndUpdate(
+      myId,
+      {
+        $pull: { friendRequestId: friendId },
+      },
+      { new: true }
+    );
+    const notification = await notificationService.removeByInfor({
+      toId: myId,
+      fromId: friendId,
+      type: 1,
+    });
+    return ResponseSender.success(res, { notification });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const acceptRequest = async (req, res, next) => {
+  try {
+    const { friendId } = req.params;
+    const myId = req.user._id;
+    const from = await User.findByIdAndUpdate(
+      friendId,
+      {
+        $pull: { friendWaitingId: myId },
+        $addToSet: { friendId: myId },
+      },
+      { new: true }
+    );
+    const to = await User.findByIdAndUpdate(
+      myId,
+      {
+        $pull: { friendRequestId: friendId },
+        $addToSet: { friendId: friendId },
+      },
+      { new: true }
+    );
+    const notification = await notificationService.removeByInfor({
+      toId: myId,
+      fromId: friendId,
+      type: 1,
+    });
+    return ResponseSender.success(res, { notification });
   } catch (error) {
     next(error);
   }
@@ -128,6 +196,8 @@ const userController = {
   updateBackground,
   addFriend,
   removeFriend,
+  denyRequest,
+  acceptRequest,
 };
 
 export default userController;
