@@ -36,7 +36,7 @@ const register = async (req, res, next) => {
 
 const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).lean();
+    const user = await User.findById(req.user._id).populate("friends").lean();
     ResponseSender.success(res, { user });
   } catch (err) {
     next(err);
