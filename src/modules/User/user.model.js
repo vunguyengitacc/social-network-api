@@ -13,9 +13,9 @@ const UserScheme = new mongoose.Schema(
     education: [String],
     avatarUri: String,
     backgroundUrl: String,
-    friendId: [{ type: Schema.Types.ObjectId, ref: "userId" }],
-    friendRequestId: [{ type: Schema.Types.ObjectId, ref: "userId" }],
-    friendWaitingId: [{ type: Schema.Types.ObjectId, ref: "userId" }],
+    friendId: [{ type: Schema.Types.ObjectId, ref: "users" }],
+    friendRequestId: [{ type: Schema.Types.ObjectId, ref: "users" }],
+    friendWaitingId: [{ type: Schema.Types.ObjectId, ref: "users" }],
     phone: String,
   },
   {

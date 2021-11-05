@@ -7,7 +7,6 @@ const getAllToMe = async (req, res, next) => {
       .populate("to")
       .populate("from")
       .lean();
-    console.log(notifications);
     return ResponseSender.success(res, { notifications });
   } catch (error) {
     next(error);

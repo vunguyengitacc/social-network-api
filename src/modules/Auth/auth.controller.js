@@ -1,5 +1,6 @@
 import ResponseSender from "../../helper/response.helper";
 import { createAccessToken } from "../../helper/token.helper";
+import Notification from "../Notification/notification.model";
 import User from "../User/user.model";
 
 const login = async (req, res, next) => {
@@ -49,7 +50,6 @@ const loginWithFacebook = async (req, res, next) => {
     const checkUser = await User.findOne({ username: `facebookId-${id}` });
     if (checkUser != null) {
       const access_token = createAccessToken(checkUser);
-      console.log(access_token);
       res.redirect(`${process.env.CLIENT_URL}/auth/oauth/${access_token}`);
       return;
     }

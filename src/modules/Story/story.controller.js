@@ -41,7 +41,11 @@ const getStoriesByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
     let stories = await Story.find({ userId: userId }).populate("owner").lean();
-    if (1) stories = stories.filter((i) => i.isPrivate === false);
+    if (
+      stories.length > 0 &&
+      !(req.user.friendId.filter((i) => i.toString() === userId).length > 0)
+    )
+      stories = stories.filter((i) => i.isPrivate === false);
     return ResponseSender.success(res, { stories });
   } catch (err) {
     next(err);
