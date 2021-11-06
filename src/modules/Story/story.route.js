@@ -4,10 +4,9 @@ import storyController from "./story.controller";
 
 const StoryRouter = express.Router();
 
-StoryRouter.route("/").get(storyController.getStories);
-StoryRouter.route("/me")
-  .get(storyController.getMyStories)
-  .post(imageUploadMiddleware, storyController.create);
+StoryRouter.route("/:seed").get(storyController.getStories);
+StoryRouter.route("/me/:seed").get(storyController.getMyStories);
+StoryRouter.route("/me").post(imageUploadMiddleware, storyController.create);
 StoryRouter.route("/me/:storyId")
   .put(storyController.updateOne)
   .delete(storyController.deleteOne);

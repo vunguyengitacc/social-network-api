@@ -6,11 +6,13 @@ import fs from "fs";
 
 const getMyStories = async (req, res, next) => {
   try {
+    const { seed } = req.params;
     const myId = req.user._id;
     const me = await User.findById(myId).lean();
     const stories = await Story.find({ userId: me._id })
       .sort({ createdAt: -1 })
-      .limit(5)
+      .skip(Number(seed) * 5)
+      .limit(Number(seed) + 5)
       .populate("owner")
       .lean();
 
@@ -22,6 +24,7 @@ const getMyStories = async (req, res, next) => {
 
 const getStories = async (req, res, next) => {
   try {
+    const { seed } = req.params;
     let myStories = await Story.find({ userId: req.user._id })
       .populate("owner")
       .lean();
@@ -30,7 +33,12 @@ const getStories = async (req, res, next) => {
     })
       .populate("owner")
       .lean();
-    let stories = new Set([...myStories, ...myFriendStories]);
+    let stories = new Set(
+      [...myStories, ...myFriendStories].splice(
+        Number(seed) * 5,
+        Number(seed) + 5
+      )
+    );
     return ResponseSender.success(res, { stories: Array.from(stories) });
   } catch (error) {
     next(error);
