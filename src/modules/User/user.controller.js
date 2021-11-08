@@ -188,6 +188,19 @@ const updateBackground = async (req, res, next) => {
   }
 };
 
+const getRecommend = async (req, res, next) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.user._id } })
+      .sort({ hotScore: "desc" })
+      .skip(0)
+      .limit(20)
+      .lean();
+    return ResponseSender.success(res, { users });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const userController = {
   getUserById,
   searchUser,
@@ -198,6 +211,7 @@ const userController = {
   removeFriend,
   denyRequest,
   acceptRequest,
+  getRecommend,
 };
 
 export default userController;

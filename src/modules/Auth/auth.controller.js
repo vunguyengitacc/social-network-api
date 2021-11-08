@@ -1,7 +1,8 @@
 import ResponseSender from "../../helper/response.helper";
 import { createAccessToken } from "../../helper/token.helper";
-import Notification from "../Notification/notification.model";
+import { activityType } from "../../utilities/activity";
 import User from "../User/user.model";
+import userServices from "../User/user.service";
 
 const login = async (req, res, next) => {
   try {
@@ -10,6 +11,10 @@ const login = async (req, res, next) => {
     if (!user) return ResponseSender.error(res, { message: "failed" });
     const access_token = createAccessToken(user);
     ResponseSender.success(res, { access_token });
+    await userServices.setScore({
+      userId: newUser._id,
+      value: activityType.LOGIN,
+    });
   } catch (err) {
     next(err);
   }
@@ -27,6 +32,7 @@ const register = async (req, res, next) => {
       avatarUri: `https://avatars.dicebear.com/api/initials/${fullname}.svg`,
       job: [],
       education: [],
+      hotScore: 10,
     });
     const access_token = createAccessToken(newUser);
     ResponseSender.success(res, { access_token });
@@ -57,6 +63,9 @@ const loginWithFacebook = async (req, res, next) => {
       username: `facebookId-${id}`,
       fullname: name,
       avatarUri: `https://graph.facebook.com/${id}/picture?type=large&width=720&height=720`,
+      job: [],
+      education: [],
+      hotScore: 5,
     });
     const access_token = createAccessToken(newUser);
     res.redirect(`${process.env.CLIENT_URL}/auth/oauth/${access_token}`);

@@ -17,6 +17,7 @@ const UserScheme = new mongoose.Schema(
     friendRequestId: [{ type: Schema.Types.ObjectId, ref: "users" }],
     friendWaitingId: [{ type: Schema.Types.ObjectId, ref: "users" }],
     phone: String,
+    hotScore: Number,
   },
   {
     toJSON: {

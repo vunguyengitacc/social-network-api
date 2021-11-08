@@ -3,6 +3,9 @@ import ResponseSender from "../../helper/response.helper";
 import User from "../User/user.model";
 import Story from "./story.model";
 import fs from "fs";
+import { activityType } from "../../utilities/activity";
+import userServices from "../User/user.service";
+import storyService from "./story.service";
 
 const getMyStories = async (req, res, next) => {
   try {
@@ -15,7 +18,6 @@ const getMyStories = async (req, res, next) => {
       .limit(Number(seed) + 5)
       .populate("owner")
       .lean();
-
     return ResponseSender.success(res, { stories });
   } catch (err) {
     next(err);
@@ -64,6 +66,10 @@ const deleteOne = async (req, res, next) => {
   try {
     const { storyId } = req.params;
     await Story.findOneAndRemove({ _id: storyId, userId: req.user._id });
+    await userServices.setScore({
+      userId: req.user._id,
+      value: activityType.REMOVE_STORY,
+    });
     return ResponseSender.success(res, { message: "success" });
   } catch (err) {
     next(err);
@@ -84,6 +90,10 @@ const create = async (req, res, next) => {
       dislikeById: [],
     });
     const story = await Story.findById(newItem._id).populate("owner").lean();
+    await userServices.setScore({
+      userId: req.user._id,
+      value: activityType.ADD_NEW_STORY,
+    });
     return ResponseSender.success(res, { story });
   } catch (err) {
     next(err);
@@ -119,44 +129,13 @@ const reactToStory = async (req, res, next) => {
     const { storyId } = req.params;
     const { like, dislike } = req.body;
     const userId = req.user._id;
-    let story;
-    if (like && dislike === undefined) {
-      story = await Story.findByIdAndUpdate(
-        storyId,
-        {
-          $pull: { dislikeById: userId },
-          $addToSet: { likeById: userId },
-        },
-        { new: true }
-      );
-    } else {
-      story = await Story.findByIdAndUpdate(
-        storyId,
-        {
-          $pull: { likeById: userId },
-        },
-        { new: true }
-      );
-    }
-    if (dislike && like === undefined) {
-      story = await Story.findByIdAndUpdate(
-        storyId,
-        {
-          $pull: { likeById: userId },
-          $addToSet: { dislikeById: userId },
-        },
-        { new: true }
-      );
-    } else {
-      story = await Story.findByIdAndUpdate(
-        storyId,
-        {
-          $pull: { dislikeById: userId },
-        },
-        { new: true }
-      );
-    }
-    if (story != null) return ResponseSender.success(res, { story });
+    const story = await storyService.reactStory({
+      storyId,
+      like,
+      dislike,
+      userId,
+    });
+    if (story !== null) return ResponseSender.success(res, { story });
     else return ResponseSender.error(res, { message: "Invalid story" });
   } catch (error) {
     next(error);
