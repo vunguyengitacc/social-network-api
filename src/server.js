@@ -23,7 +23,7 @@ app.use(passport.initialize());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(multerUploader.single("file"));
+app.use(multerUploader.array("file"));
 
 facebookOAuthPassport();
 connectDB();

@@ -79,15 +79,19 @@ const deleteOne = async (req, res, next) => {
 const create = async (req, res, next) => {
   try {
     const { content, isPrivate } = req.body;
-    const data = await cloudinaryUploader(req.file.path, "/picture_stories");
-    fs.unlinkSync(req.file.path);
     const newItem = await Story.create({
       userId: req.user._id,
       content: content,
-      imageUrl: data.url,
       isPrivate,
       likeById: [],
       dislikeById: [],
+    });
+    await req.files.map(async (file) => {
+      let response = await cloudinaryUploader(file.path, "/picture_stories");
+      fs.unlinkSync(file.path);
+      await Story.findByIdAndUpdate(newItem._id, {
+        $addToSet: { imageUrl: response.url },
+      });
     });
     const story = await Story.findById(newItem._id).populate("owner").lean();
     await userServices.setScore({
@@ -108,7 +112,6 @@ const updateOne = async (req, res, next) => {
       { _id: storyId, userId: req.user._id },
       {
         isPrivate: data.isPrivate,
-        imageUrl: data.imageUrl,
       },
       { new: true }
     );
@@ -142,7 +145,19 @@ const reactToStory = async (req, res, next) => {
   }
 };
 
+const getById = async (req, res, next) => {
+  try {
+    const { storyId } = req.params;
+    const story = await Story.findById(storyId).populate("owner").lean();
+    console.log(story);
+    return ResponseSender.success(res, { story });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const storyController = {
+  getById,
   getMyStories,
   getStoriesByUserId,
   create,
