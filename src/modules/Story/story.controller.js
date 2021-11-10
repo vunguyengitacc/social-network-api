@@ -29,6 +29,7 @@ const getStories = async (req, res, next) => {
     const { seed } = req.params;
     let myStories = await Story.find({ userId: req.user._id })
       .populate("owner")
+      .sort({ createdAt: -1 })
       .lean();
     let myFriendStories = await Story.find({
       userId: { $in: [...req.user.friendId] },

@@ -7,6 +7,7 @@ const getByStoryId = async (req, res, next) => {
     const comments = await Comment.find({ storyId })
       .populate("story")
       .populate("owner")
+      .sort({ createdAt: 1 })
       .lean();
     return ResponseSender.success(res, { comments });
   } catch (error) {
