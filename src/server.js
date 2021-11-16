@@ -11,6 +11,7 @@ import { cloudinaryConfig } from "./config/cloudiary.config";
 import multerUploader from "./config/multer.config";
 import { morganCustom } from "./config/morgan.custom";
 import * as io from "socket.io";
+import handleError from "./helper/handleError.helper";
 
 require("dotenv").config();
 
@@ -32,6 +33,7 @@ facebookOAuthPassport();
 connectDB();
 MasterRoute(app);
 cloudinaryConfig();
+app.use(handleError);
 
 app.get("/", (req, res) => {
   res.send("Server is working");

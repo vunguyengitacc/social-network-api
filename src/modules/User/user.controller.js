@@ -38,6 +38,7 @@ const updateMe = async (req, res, next) => {
     const user = await User.findByIdAndUpdate(req.user._id, data, {
       new: true,
     });
+    await User.populate(user, "friends");
     return ResponseSender.success(res, { user });
   } catch (error) {
     next(error);

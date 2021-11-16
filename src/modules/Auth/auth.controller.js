@@ -26,6 +26,7 @@ const login = async (req, res, next) => {
 
 const register = async (req, res, next) => {
   try {
+    console.log("here");
     const { username, password, fullname } = req.body;
     const user = await User.findOne({ username }).lean();
     if (user)
@@ -39,11 +40,13 @@ const register = async (req, res, next) => {
       avatarUri: `https://avatars.dicebear.com/api/initials/${fullname}.svg`,
       job: [],
       education: [],
+      friendId: [],
       hotScore: 10,
     });
     const access_token = createAccessToken(newUser);
     ResponseSender.success(res, { access_token });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };

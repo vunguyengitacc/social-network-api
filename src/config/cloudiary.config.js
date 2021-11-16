@@ -8,6 +8,12 @@ export const cloudinaryConfig = () => {
   });
 };
 
+/**
+ * upload file to cloudinary
+ * @param {string} file the url at local of the file which you want to upload
+ * @param {string} folder the url of folder in cloudinary
+ * @returns {object} an object that contains url and public_id of file after uploaded to cloudinary
+ */
 export const cloudinaryUploader = async (file, folder) => {
   try {
     const result = await cloudinary.uploader.upload(file, { folder });
