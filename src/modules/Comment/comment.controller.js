@@ -1,4 +1,5 @@
 import ResponseSender from "../../helper/response.helper";
+import { socketServer } from "../../server";
 import Comment from "./comment.model";
 
 const getByStoryId = async (req, res, next) => {
@@ -25,6 +26,7 @@ const create = async (req, res, next) => {
     });
     await Comment.populate(comment, { path: "owner" });
     await Comment.populate(comment, { path: "story" });
+    socketServer.sockets.emit("comment/add", { comment });
     return ResponseSender.success(res, { comment });
   } catch (error) {
     next(error);
@@ -43,7 +45,10 @@ const deleteById = async (req, res, next) => {
     );
     if (comment === null)
       return ResponseSender.error(res, { message: "Unauthorized" });
-    else return ResponseSender.success(res, { message: "Complete" });
+    else {
+      socketServer.sockets.emit("comment/delete", { commentId });
+      return ResponseSender.success(res, { message: "Complete" });
+    }
   } catch (error) {
     next(error);
   }

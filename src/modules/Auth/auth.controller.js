@@ -8,13 +8,17 @@ const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username, password }).lean();
-    if (!user) return ResponseSender.error(res, { message: "failed" });
+    if (!user) {
+      return ResponseSender.error(res, {
+        message: "Username or password not match",
+      });
+    }
     const access_token = createAccessToken(user);
-    ResponseSender.success(res, { access_token });
     await userServices.setScore({
-      userId: newUser._id,
+      userId: user._id,
       value: activityType.LOGIN,
     });
+    return ResponseSender.success(res, { access_token });
   } catch (err) {
     next(err);
   }
@@ -24,7 +28,10 @@ const register = async (req, res, next) => {
   try {
     const { username, password, fullname } = req.body;
     const user = await User.findOne({ username }).lean();
-    if (user) return ResponseSender.error(res, { message: "failed" });
+    if (user)
+      return ResponseSender.error(res, {
+        message: "Username has already exist",
+      });
     const newUser = await User.create({
       username: username,
       fullname: fullname,

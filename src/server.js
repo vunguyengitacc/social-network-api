@@ -1,3 +1,4 @@
+import http from "http";
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -9,8 +10,10 @@ import MasterRoute from "./route/master.route";
 import { cloudinaryConfig } from "./config/cloudiary.config";
 import multerUploader from "./config/multer.config";
 import { morganCustom } from "./config/morgan.custom";
+import * as io from "socket.io";
 
 require("dotenv").config();
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -35,3 +38,11 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
+const socketServer = new io.Server(http.createServer().listen(8000), {
+  cors: { origin: process.env.CLIENT_URL },
+});
+socketServer.on("connection", (socketId) => {
+  console.log(socketId.id, "join socket");
+});
+export { socketServer };

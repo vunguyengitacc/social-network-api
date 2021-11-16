@@ -1,11 +1,12 @@
-import { cloudinaryUploader } from "../../config/cloudiary.config";
-import ResponseSender from "../../helper/response.helper";
+import { cloudinaryUploader } from "config/cloudiary.config";
+import ResponseSender from "helper/response.helper";
 import User from "../User/user.model";
 import Story from "./story.model";
 import fs from "fs";
-import { activityType } from "../../utilities/activity";
+import { activityType } from "utilities/activity";
 import userServices from "../User/user.service";
 import storyService from "./story.service";
+import { socketServer } from "server";
 
 const getMyStories = async (req, res, next) => {
   try {
@@ -28,8 +29,8 @@ const getStories = async (req, res, next) => {
   try {
     const { seed } = req.params;
     let myStories = await Story.find({ userId: req.user._id })
-      .populate("owner")
       .sort({ createdAt: -1 })
+      .populate("owner")
       .lean();
     let myFriendStories = await Story.find({
       userId: { $in: [...req.user.friendId] },
@@ -50,13 +51,14 @@ const getStories = async (req, res, next) => {
 
 const getStoriesByUserId = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const { userId, seed } = req.params;
     let stories = await Story.find({ userId: userId }).populate("owner").lean();
     if (
       stories.length > 0 &&
       !(req.user.friendId.filter((i) => i.toString() === userId).length > 0)
     )
       stories = stories.filter((i) => i.isPrivate === false);
+    stories = stories.splice(Number(seed) * 5, Number(seed) + 5);
     return ResponseSender.success(res, { stories });
   } catch (err) {
     next(err);
@@ -71,6 +73,7 @@ const deleteOne = async (req, res, next) => {
       userId: req.user._id,
       value: activityType.REMOVE_STORY,
     });
+    socketServer.sockets.emit("story/delete", { storyId });
     return ResponseSender.success(res, { message: "success" });
   } catch (err) {
     next(err);
@@ -139,8 +142,10 @@ const reactToStory = async (req, res, next) => {
       dislike,
       userId,
     });
-    if (story !== null) return ResponseSender.success(res, { story });
-    else return ResponseSender.error(res, { message: "Invalid story" });
+    if (story !== null) {
+      socketServer.sockets.emit("story/reaction", { story });
+      return ResponseSender.success(res, { story });
+    } else return ResponseSender.error(res, { message: "Invalid story" });
   } catch (error) {
     next(error);
   }

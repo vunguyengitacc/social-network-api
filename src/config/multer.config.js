@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 });
 
 const filter = (req, file, cb) => {
-  if (file.mimetype === "image/jpge" || file.mimetype === "image/png")
+  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png")
     cb(null, true);
   else cb(new Error("Only image is accepted"));
 };

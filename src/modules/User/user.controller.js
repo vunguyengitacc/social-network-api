@@ -4,13 +4,13 @@ import ResponseSender from "../../helper/response.helper";
 import User from "./user.model";
 import fs from "fs";
 import notificationService from "../Notification/notification.service";
+import { socketServer } from "../../server";
 
 const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId).populate("friends").lean();
     if (!user) return ResponseSender.error(res, { message: "user id invalid" });
-    console.log(user.friendId);
     return ResponseSender.success(res, { user });
   } catch (err) {
     next(err);
@@ -68,6 +68,9 @@ const addFriend = async (req, res, next) => {
       message: "send friend request",
       type: 1,
     });
+    await User.populate(user, "friends");
+    await User.populate(to, "friends");
+    socketServer.sockets.emit("friend/request/add", { user, to });
     return ResponseSender.success(res, { user });
   } catch (error) {
     next(error);
@@ -92,6 +95,14 @@ const removeFriend = async (req, res, next) => {
       },
       { new: true }
     );
+    await notificationService.removeByInfor({
+      toId: friendId,
+      fromId: userId,
+      type: 1,
+    });
+    await User.populate(user, "friends");
+    await User.populate(to, "friends");
+    socketServer.sockets.emit("friend/delete", { user, to });
     return ResponseSender.success(res, { user });
   } catch (error) {
     next(error);
@@ -116,12 +127,15 @@ const denyRequest = async (req, res, next) => {
       },
       { new: true }
     );
-    const notification = await notificationService.removeByInfor({
+    await notificationService.removeByInfor({
       toId: myId,
       fromId: friendId,
       type: 1,
     });
-    return ResponseSender.success(res, { notification });
+    await User.populate(from, "friends");
+    await User.populate(to, "friends");
+    socketServer.sockets.emit("friend/request/deny", { user: from, to });
+    return ResponseSender.success(res, { message: "Success" });
   } catch (error) {
     next(error);
   }
@@ -147,12 +161,16 @@ const acceptRequest = async (req, res, next) => {
       },
       { new: true }
     );
-    const notification = await notificationService.removeByInfor({
+    await notificationService.removeByInfor({
       toId: myId,
       fromId: friendId,
       type: 1,
     });
-    return ResponseSender.success(res, { notification });
+
+    await User.populate(from, "friends");
+    await User.populate(to, "friends");
+    socketServer.sockets.emit("friend/request/accept", { user: from, to });
+    return ResponseSender.success(res, { message: "Success" });
   } catch (error) {
     next(error);
   }
@@ -160,8 +178,8 @@ const acceptRequest = async (req, res, next) => {
 
 const updateAvatar = async (req, res, next) => {
   try {
-    const data = await cloudinaryUploader(req.file.path, "/picture_avatar");
-    fs.unlinkSync(req.file.path);
+    const data = await cloudinaryUploader(req.files[0].path, "/picture_avatar");
+    fs.unlinkSync(req.files[0].path);
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { avatarUri: data.url },
@@ -175,8 +193,11 @@ const updateAvatar = async (req, res, next) => {
 
 const updateBackground = async (req, res, next) => {
   try {
-    const data = await cloudinaryUploader(req.file.path, "/picture_background");
-    fs.unlinkSync(req.file.path);
+    const data = await cloudinaryUploader(
+      req.files[0].path,
+      "/picture_background"
+    );
+    fs.unlinkSync(req.files[0].path);
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { backgroundUrl: data.url },

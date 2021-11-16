@@ -10,7 +10,9 @@ StoryRouter.route("/me").post(imageUploadMiddleware, storyController.create);
 StoryRouter.route("/me/:storyId")
   .put(storyController.updateOne)
   .delete(storyController.deleteOne);
-StoryRouter.route("/user/:userId").get(storyController.getStoriesByUserId);
+StoryRouter.route("/user/:userId/:seed").get(
+  storyController.getStoriesByUserId
+);
 StoryRouter.route("/:storyId")
   .get(storyController.getById)
   .put(storyController.reactToStory);
