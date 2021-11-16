@@ -19,6 +19,7 @@ const getMyStories = async (req, res, next) => {
       .limit(Number(seed) + 5)
       .populate("owner")
       .lean();
+
     return ResponseSender.success(res, { stories });
   } catch (err) {
     next(err);
@@ -35,6 +36,7 @@ const getStories = async (req, res, next) => {
     let myFriendStories = await Story.find({
       userId: { $in: [...req.user.friendId] },
     })
+      .sort({ createdAt: -1 })
       .populate("owner")
       .lean();
     let stories = new Set(
@@ -52,7 +54,10 @@ const getStories = async (req, res, next) => {
 const getStoriesByUserId = async (req, res, next) => {
   try {
     const { userId, seed } = req.params;
-    let stories = await Story.find({ userId: userId }).populate("owner").lean();
+    let stories = await Story.find({ userId: userId })
+      .sort({ createdAt: -1 })
+      .populate("owner")
+      .lean();
     if (
       stories.length > 0 &&
       !(req.user.friendId.filter((i) => i.toString() === userId).length > 0)
@@ -143,7 +148,7 @@ const reactToStory = async (req, res, next) => {
       userId,
     });
     if (story !== null) {
-      socketServer.sockets.emit("story/reaction", { story });
+      socketServer.sockets.emit("story/reaction", { story, userId });
       return ResponseSender.success(res, { story });
     } else return ResponseSender.error(res, { message: "Invalid story" });
   } catch (error) {

@@ -4,7 +4,11 @@ import Story from "./story.model";
 
 /**
  * do reaction to story by user
- * @param data an object cotains 4 value: like, dislike, userId, storyId
+ * @param {object} data an object cotains 4 value: like, dislike, userId, storyId
+ * @param {boolean} data.like like = true => add to like list, like =false, remove from like list
+ * @param {boolean} data.dislike dislike = true => add to dislike list, dislike = false, remove from dislike list
+ * @param {string} data.storyId an object cotains 4 value: like, dislike, userId, storyId
+ * @param {string} data.userId an object cotains 4 value: like, dislike, userId, storyId
  * @returns story after do react(null if catch error)
  */
 const reactStory = async (data) => {
