@@ -1,5 +1,5 @@
 import express from "express";
-import imageUploadMiddleware from "../../middleware/imageUpload.middleware";
+import imageUploadMiddleware from "middleware/imageUpload.middleware";
 import storyController from "./story.controller";
 
 const StoryRouter = express.Router();
@@ -13,8 +13,6 @@ StoryRouter.route("/me/:storyId")
 StoryRouter.route("/user/:userId/:seed").get(
   storyController.getStoriesByUserId
 );
-StoryRouter.route("/:storyId")
-  .get(storyController.getById)
-  .put(storyController.reactToStory);
+StoryRouter.route("/:storyId").get(storyController.getById);
 
 export default StoryRouter;

@@ -6,9 +6,9 @@ const StoryScheme = mongoose.Schema(
     content: String,
     userId: { type: Schema.Types.ObjectId, ref: "users" },
     isPrivate: Boolean,
-    likeById: [{ type: Schema.Types.ObjectId, ref: "users" }],
-    dislikeById: [{ type: Schema.Types.ObjectId, ref: "users" }],
     phone: String,
+    includeImage: Boolean,
+    reactionId: [{ type: Schema.Types.ObjectId, ref: "reactions" }],
   },
   {
     toJSON: {
@@ -19,15 +19,9 @@ const StoryScheme = mongoose.Schema(
   }
 );
 
-StoryScheme.virtual("likes", {
-  ref: "users",
-  localField: "likeById",
-  foreignField: "_id",
-});
-
-StoryScheme.virtual("dislikes", {
-  ref: "users",
-  localField: "dislikeById",
+StoryScheme.virtual("reactions", {
+  ref: "reactions",
+  localField: "reactionId",
   foreignField: "_id",
 });
 
